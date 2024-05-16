@@ -46,7 +46,7 @@ function textManager(ctx) {
       return subscriber.chatId !== ctx.chat.id;
     });
   }
-  if (ctx.message.text === "Monterenzio41!!!!") {
+  if (ctx.message.text === "pass") {
     ctx.reply(
       "Password accettata, scrivi il mezzo a cui desideri sottoscrivere le notifiche TUTTO IN MAIUSCOLO. /stop per cancellare"
     );
