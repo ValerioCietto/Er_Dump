@@ -1,85 +1,107 @@
-// launch with node src/sqlite.controller.js
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
-// sqlite controller
-
-const sqlite3 = require("sqlite3").verbose();
-const path = require("path");
-
-// open database
-const db = new sqlite3.Database(
-  path.resolve(__dirname, "../db/118er.db"),
-  (err) => {
-    if (err) {
-      console.error(err.message);
-    }
-    console.log("Connected to the 118er database.");
+class DatabaseController {
+  constructor() {
+    this.db = new sqlite3.Database(
+      path.resolve(__dirname, "../db/118er.db"),
+      (err) => {
+        if (err) {
+          console.error(err.message);
+        }
+        console.log("Connected to the 118er database.");
+      }
+    );
   }
-);
 
-async function dbCreate() {
-  db.run(
-    "CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY, username TEXT, chatId TEXT)"
-  );
-  db.run(
-    "CREATE TABLE IF NOT EXIST subscription (id INTEGER PRIMARY KEY, chatId TEXT, username TEXT, vehicleCode TEXT)"
-  );
-}
-
-async function addUser(username, chatId) {
-  // add user in table user
-  db.run(
-    "INSERT INTO user (username, chatId) VALUES (?, ?)",
-    [username, chatId],
-    (err) => {
+  async createTables() {
+    const createUsers = "CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY, username TEXT, chatId TEXT)";
+    const createSubscriptions = "CREATE TABLE IF NOT EXISTS subscription (id INTEGER PRIMARY KEY, chatId TEXT, username TEXT, vehicleCode TEXT)";
+    
+    this.db.run(createUsers, (err) => {
       if (err) {
-        console.error(err.message);
+        console.error('Error creating user table:', err.message);
+      } else {
+        console.log("User table created or already exists.");
       }
-      console.log("user added");
-    }
-  );
-}
+    });
 
-async function addSubscription(chatId, username, vehicleCode) {
-  db.run(
-    "INSERT INTO subscription (chatId, username, vehicleCode) VALUES (?, ?, ?)",
-    [chatId, username, vehicleCode],
-    (err) => {
+    this.db.run(createSubscriptions, (err) => {
       if (err) {
-        console.error(err.message);
+        console.error('Error creating subscription table:', err.message);
+      } else {
+        console.log("Subscription table created or already exists.");
       }
-      console.log("subscription added");
-    }
-  );
+    });
+  }
+
+  async addUser(username, chatId) {
+    this.db.run(
+      "INSERT INTO user (username, chatId) VALUES (?, ?)",
+      [username, chatId],
+      (err) => {
+        if (err) {
+          console.error('Error adding user:', err.message);
+        } else {
+          console.log("User added.");
+        }
+      }
+    );
+  }
+
+  async addSubscription(chatId, username, vehicleCode) {
+    this.db.run(
+      "INSERT INTO subscription (chatId, username, vehicleCode) VALUES (?, ?, ?)",
+      [chatId, username, vehicleCode],
+      (err) => {
+        if (err) {
+          console.error('Error adding subscription:', err.message);
+        } else {
+          console.log("Subscription added.");
+        }
+      }
+    );
+  }
+
+  async getSubscribers(vehicleCode) {
+    return new Promise((resolve, reject) => {
+      let subscribers = [];
+      this.db.each(
+        "SELECT * FROM subscription WHERE vehicleCode = ?",
+        [vehicleCode],
+        (err, row) => {
+          if (err) {
+            reject(err.message);
+          }
+          subscribers.push(row);
+        },
+        (err, count) => {
+          if (err) {
+            reject(err.message);
+          }
+          resolve(subscribers);
+        }
+      );
+    });
+  }
+
+  async removeSubscriber(chatId, vehicleCode) {
+    this.db.run(
+      "DELETE FROM subscription WHERE chatId = ? AND vehicleCode = ?",
+      [chatId, vehicleCode],
+      (err) => {
+        if (err) {
+          console.error('Error removing subscription:', err.message);
+        } else {
+          console.log("Subscription removed.");
+        }
+      }
+    );
+  }
+
+  close() {
+    this.db.close();
+  }
 }
 
-async function getSubscribers(vehicleCode) {
-  subscribers = [];
-
-  db.each(
-    "SELECT * FROM subscription WHERE vehicleCode = ?",
-    [vehicleCode],
-    (err, row) => {
-      if (err) {
-        console.error(err.message);
-      }
-
-      subscribers.push(row);
-    }
-  );
-  return subscribers;
-}
-
-async function removeSubscriber(chatId, vehicleCode) {
-  db.run(
-    "DELETE FROM subscription WHERE chatId = ? AND vehicleCode = ?",
-    [chatId, vehicleCode],
-    (err) => {
-      if (err) {
-        console.error(err.message);
-      }
-      console.log("subscriptions removed");
-    }
-  );
-}
-
-module.exports = db;
+module.exports = DatabaseController;
