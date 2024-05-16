@@ -3,6 +3,9 @@
 const { Telegraf } = require("telegraf");
 const { decodeCode } = require("./decodeUrgency");
 const { vehicles } = require("./vehicles");
+const DatabaseController = require('./sqlite.controller.js');
+const dbController = new DatabaseController();
+
 const dotenv = require("dotenv");
 dotenv.config({ path: "./src/credenziali.env" });
 
@@ -17,8 +20,13 @@ bot.on("message", (ctx) => textManager(ctx));
 console.log("config bot");
 bot.launch();
 // Enable graceful stop
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+process.once("SIGINT", () => onStop("SIGINT"));
+process.once("SIGTERM", () => onStop("SIGTERM"));
+
+function onStop(signal){
+  dbController.close();
+  bot.stop(signal)
+}
 
 function sendMessageToSubscribers(text) {
   subscribers.forEach((subscriber) => {
