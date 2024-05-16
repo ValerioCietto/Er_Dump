@@ -1,0 +1,20 @@
+{
+  "subscriptions":
+  [
+    {
+      "chatId":"1234",
+      "username":"Giovanni",
+      "vehicleCode":"MONTERENZIO1",
+    },
+    {
+      "chatId":"24123",
+      "username":"Valerio",
+      "vehicleCode":"MONTERENZIO1",
+    },
+    {
+      "chatId":"24123",
+      "username":"Valerio",
+      "vehicleCode":"MONTERENZIO2",
+    },
+  ]
+}
