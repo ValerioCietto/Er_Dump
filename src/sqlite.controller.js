@@ -1,3 +1,10 @@
+// USAGE EXAMPLE
+// const DatabaseController = require('./path_to/DatabaseController');
+// const dbController = new DatabaseController();
+
+// After your operations
+// dbController.close();
+
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
